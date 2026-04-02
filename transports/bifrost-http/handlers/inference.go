@@ -200,6 +200,11 @@ var embeddingParamsKnownFields = map[string]bool{
 	"fallbacks":       true,
 	"encoding_format": true,
 	"dimensions":      true,
+	"task_type":       true,
+	"title":           true,
+	"auto_truncate":   true,
+	"truncate":        true,
+	"max_tokens":      true,
 }
 
 var rerankParamsKnownFields = map[string]bool{
@@ -1089,8 +1094,11 @@ func prepareEmbeddingRequest(ctx *fasthttp.RequestCtx, config *lib.Config) (*Emb
 	if err != nil {
 		return nil, nil, err
 	}
-	if req.Input == nil || (req.Input.Text == nil && req.Input.Texts == nil && req.Input.Embedding == nil && req.Input.Embeddings == nil) {
+	if req.Input == nil || len(req.Input.Contents) == 0 {
 		return nil, nil, fmt.Errorf("input is required for embeddings")
+	}
+	if err := req.Input.Validate(); err != nil {
+		return nil, nil, err
 	}
 	if req.EmbeddingParameters == nil {
 		req.EmbeddingParameters = &schemas.EmbeddingParameters{}

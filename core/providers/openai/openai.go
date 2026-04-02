@@ -1852,7 +1852,7 @@ func HandleOpenAIEmbeddingRequest(
 	providerName schemas.ModelProvider,
 	sendBackRawRequest bool,
 	sendBackRawResponse bool,
-	customResponseHandler responseHandler[schemas.BifrostEmbeddingResponse],
+	customResponseHandler responseHandler[OpenaiEmbeddingResponse],
 	logger schemas.Logger,
 ) (*schemas.BifrostEmbeddingResponse, *schemas.BifrostError) {
 	// Create request
@@ -1904,7 +1904,7 @@ func HandleOpenAIEmbeddingRequest(
 		ctx,
 		request,
 		func() (providerUtils.RequestBodyWithExtraParams, error) {
-			return ToOpenAIEmbeddingRequest(request), nil
+			return ToOpenAIEmbeddingRequest(request)
 		})
 	if bifrostErr != nil {
 		return nil, bifrostErr
@@ -1942,20 +1942,24 @@ func HandleOpenAIEmbeddingRequest(
 		}, nil
 	}
 
-	response := &schemas.BifrostEmbeddingResponse{}
+	openaiResp := &OpenaiEmbeddingResponse{}
 
 	var rawRequest, rawResponse interface{}
 
 	if customResponseHandler != nil {
-		rawRequest, rawResponse, bifrostErr = customResponseHandler(body, response, jsonData, sendBackRawRequest, sendBackRawResponse)
+		rawRequest, rawResponse, bifrostErr = customResponseHandler(body, openaiResp, jsonData, sendBackRawRequest, sendBackRawResponse)
 	} else {
-		rawRequest, rawResponse, bifrostErr = providerUtils.HandleProviderResponse(body, response, jsonData, sendBackRawRequest, sendBackRawResponse)
+		rawRequest, rawResponse, bifrostErr = providerUtils.HandleProviderResponse(body, openaiResp, jsonData, sendBackRawRequest, sendBackRawResponse)
 	}
 
 	if bifrostErr != nil {
 		return nil, providerUtils.EnrichError(ctx, bifrostErr, jsonData, body, sendBackRawRequest, sendBackRawResponse)
 	}
 
+	response := openaiResp.ToBifrostEmbeddingResponse()
+	response.ExtraFields.Provider = providerName
+	response.ExtraFields.ResolvedModelUsed = request.Model
+	response.ExtraFields.RequestType = schemas.EmbeddingRequest
 	response.ExtraFields.Latency = latency.Milliseconds()
 	response.ExtraFields.ProviderResponseHeaders = providerResponseHeaders
 
