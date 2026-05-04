@@ -1548,7 +1548,8 @@ func convertBifrostMessagesToGemini(messages []schemas.ChatMessage) ([]Content, 
 
 	for i, message := range messages {
 		// Handle system messages separately - Gemini requires them in SystemInstruction field
-		if message.Role == schemas.ChatMessageRoleSystem {
+		// Gemini has no support for role "developer", so we treat it as "system"
+		if message.Role == schemas.ChatMessageRoleSystem || message.Role == schemas.ChatMessageRoleDeveloper {
 			if systemInstruction == nil {
 				systemInstruction = &Content{}
 			}

@@ -2826,7 +2826,7 @@ func ConvertBifrostMessagesToBedrockMessages(ctx context.Context, bifrostMessage
 			}
 
 			// Convert regular message
-			if role == schemas.ResponsesInputMessageRoleSystem {
+			if role == schemas.ResponsesInputMessageRoleSystem || role == schemas.ResponsesInputMessageRoleDeveloper {
 				// Convert to system message
 				systemMsgs := convertBifrostMessageToBedrockSystemMessages(&msg)
 				systemMessages = append(systemMessages, systemMsgs...)
@@ -3081,7 +3081,6 @@ func convertSingleBedrockMessageToBifrostMessages(ctx *schemas.BifrostContext, m
 					Signature: block.ReasoningContent.ReasoningText.Signature,
 				})
 			}
-
 		} else if block.ToolUse != nil {
 			// Tool use content
 			// Create copies of the values to avoid range loop variable capture
