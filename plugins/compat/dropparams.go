@@ -309,4 +309,3 @@ func dropCacheControlFromResponsesMessages(req *schemas.BifrostResponsesRequest)
 	}
 	return dropped
 }
-
